@@ -1,28 +1,56 @@
-<template>
-  <div id="app">
-    <img alt="Vue logo" src="./assets/logo.png">
-    <HelloWorld msg="Welcome to Your Vue.js App"/>
-  </div>
+<template lang="html">
+  <body>
+    <h1>NFL Teams By Number of Arrests</h1>
+    <div>
+      <teams-names-list :teamsNames="teamsNames"></teams-names-list>
+      <div>
+          <team-detail :selectedTeam="selectedTeam"></team-detail>
+      </div>
+    </div>
+  </body>
+
 </template>
 
 <script>
-import HelloWorld from './components/HelloWorld.vue'
+import {eventBus} from './main.js';
+import TeamsNamesList from './components/TeamsNamesList.vue';
+import TeamDetail from './components/TeamDetail.vue'
 
 export default {
   name: 'app',
+  data(){
+    return {
+      teams: [],
+      teamsNames: [],
+      selectedTeam: null
+    }
+  },
+
+  mounted(){
+    fetch('http://nflarrest.com/api/v1/team')
+      .then(result => result.json())
+      .then(teams => {
+        this.teamsNames = teams.map(team => team.Team_preffered_name)
+        this.teams = teams
+      })
+      eventBus.$on('name-selected', (selectedTeamName) => {
+        this.selectedTeam = this.getTeamByName(selectedTeamName)
+      })
+  },
+
+  methos: {
+    getTeamByname(teamName) {
+      const foundTeam = this.teams.filter(team => team.Team_preffered_name === teamName)[1]
+      return foundTeam
+    }
+  },
+
   components: {
-    HelloWorld
+    "teams-names-list": TeamsNamesList,
+    "team-detail": TeamDetail
   }
 }
 </script>
 
-<style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
-}
+<style lang="css" scoped>
 </style>
